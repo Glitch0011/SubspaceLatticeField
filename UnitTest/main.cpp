@@ -11,6 +11,8 @@ struct Boid
 #include <time.h>
 #include <vector>
 
+#include <UnitTest.h>
+
 int main()
 {
 	//Boid Setup
@@ -28,16 +30,35 @@ int main()
 		boids.push_back(boid);
 	}
 
+	boids[0]->pos[0] = 5.0;
+	boids[0]->pos[1] = 5.0;
+
 
 	//Field Setup
 	SubSpaceLatticeField<Boid*> field = SubSpaceLatticeField<Boid*>(0.0, 0.0, 10.0, 10.0, 1.0);
 
 	field.Update(&boids);
 
-	std::vector<Boid*> results;
+	//Test results exist
+	UnitTest::TestGreaterThan<int>([&]
+	{
+		std::vector<Boid*> results;
 
-	double x = 5.0, y = 5.0;
-	field.Sample(x, y, &results);
+		double x = 5.0, y = 5.0;
+		field.Sample(x, y, &results);
+
+		return results.size();
+	}, 0);
+
+	UnitTest::TestEqual<int>([&]
+	{
+		std::vector<Boid*> results;
+
+		double x = 50.0, y = 50.0;
+		field.Sample(x, y, &results);
+
+		return results.size();
+	}, 0);
 
 	return 0;
 }
