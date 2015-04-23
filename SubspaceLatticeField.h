@@ -2,9 +2,11 @@
 
 #include <vector>
 #include <map>
-//#include <Boid.h>
 #include <algorithm>
-#include <ScalarDef.h>
+
+#ifndef SCALAR
+	#define SCALAR double
+#endif
 
 template<typename T> void erase_unordered(std::vector<T>& v, size_t index)
 {
@@ -14,13 +16,14 @@ template<typename T> void erase_unordered(std::vector<T>& v, size_t index)
 
 template <class T> class SubSpaceLatticeField
 {
-public:
+private:
 	std::vector<T>* map;
 	std::vector<T>* mapEnd;
 
 	SCALAR x, y, width, height, maxSearchWidth;
 	int iWidth, iHeight;
 
+public:
 	SubSpaceLatticeField()
 	{
 
@@ -34,8 +37,8 @@ public:
 		this->height = height;
 		this->maxSearchWidth = maxSearchWidth;
 
-		this->iWidth = width / maxSearchWidth;
-		this->iHeight = height / maxSearchWidth;
+		this->iWidth = ceil(width / maxSearchWidth);
+		this->iHeight = ceil(height / maxSearchWidth);
 
 		map = new std::vector<T>[this->iWidth * this->iHeight];
 
@@ -45,9 +48,13 @@ public:
 		mapEnd = &map[this->iWidth * this->iHeight];
 	}
 
+private:
 	std::pair<int, int> ConvertFromWorldToGrid(SCALAR& worldX, SCALAR& worldY)
 	{
-		return std::make_pair<int, int>(((width / 2.0) + worldX) / maxSearchWidth, ((height / 2) + worldY) / maxSearchWidth);
+		auto offsetX = worldX - this->x;
+		auto offsetY = worldY - this->y;
+
+		return std::make_pair<int, int>(offsetX / maxSearchWidth, offsetY / maxSearchWidth);
 	}
 
 	inline std::vector<T>* FetchPure(int x, int y)
@@ -61,9 +68,11 @@ public:
 	{
 		std::vector<T>* pos = this->FetchPure(x, y);
 
-		if (pos)
+		if (pos && pos->size() > 0)
 			results->insert(results->end(), pos->begin(), pos->end());
 	}
+
+public:
 
 	void Sample(SCALAR& worldX, SCALAR& worldY, std::vector<T>* results = nullptr)
 	{
